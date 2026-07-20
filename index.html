@@ -631,58 +631,51 @@
         // ----------------------------------------------------
         // 7. Fitur Berita Terkini (Anti-Blokir Chrome & CORS)
         // ----------------------------------------------------
+       
+        // ----------------------------------------------------
+        // 7. Fitur Berita Terkini (Khusus Optimasi Tablet Android 5.1)
+        // ----------------------------------------------------
         let daftarBerita = [
-            "Selamat datang di Smart Mirror. Harap tunggu, sedang memutakhirkan berita...",
-            "Tips Smart Home: Cuaca hari ini dapat berubah, selalu siapkan payung sebelum beraktivitas.",
-            "Info Pasar: Pantau terus pergerakan nilai tukar Dolar dan harga emas per gram di panel kiri.",
-            "Teknologi: Smart Mirror berbasis Android 5.1 ini berjalan hemat daya dan ramah kuota internet."
+            "Selamat datang di Smart Mirror! Sistem berfungsi normal.",
+            "Tips: Tetap semangat dan jaga kesehatan setiap hari!",
+            "Info: Mengambil pembaruan berita terkini dari server..."
         ];
         let indeksBerita = 0;
         let beritaInterval = null;
 
         function updateBeritaAPI() {
-            // LAPISAN 1: Mencoba NYT via RSS2JSON biasa
-            const nytUrl = encodeURIComponent('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml');
-            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${nytUrl}`)
+            // Menggunakan sumber berita yang sangat ringan tanpa Double Proxy
+            // Jalur Utama: CNN Indonesia via RSS2JSON langsung
+            const rssUrl = encodeURIComponent('https://www.cnnindonesia.com/nasional/rss');
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
+
+            fetch(apiUrl)
                 .then(response => {
-                    if (!response.ok) throw new Error("Gagal load NYT");
+                    if (!response.ok) throw new Error("Koneksi API tidak merespons");
                     return response.json();
                 })
                 .then(data => {
                     if (data.items && data.items.length > 0) {
                         daftarBerita = data.items.map(item => item.title);
-                        document.getElementById('news-label').innerText = "NYT TOP STORIES";
-                        mulaiRotasiBerita();
-                    } else {
-                        throw new Error("Data NYT kosong");
+                        const labelEl = document.getElementById('news-label');
+                        if (labelEl) labelEl.innerText = "BERITA TERKINI";
                     }
                 })
                 .catch(err => {
-                    console.warn("Lapisan 1 (NYT) diblokir Chrome/CORS. Mengalihkan ke Lapisan 2 (CORS Proxy)...");
+                    console.warn("Gagal load CNN, mencoba sumber cadangan (Antara News)...", err);
                     
-                    // LAPISAN 2: Menggunakan AllOrigins Proxy (Bypass Blokir CORS di Chrome Laptop)
-                    // Mengambil RSS Feed Nasional dari CNN Indonesia via proxy terbuka
-                    const cnnRss = encodeURIComponent('https://www.cnnindonesia.com/nasional/rss');
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://api.rss2json.com/v1/api.json?rss_url=' + cnnRss)}`;
-                    
-                    fetch(proxyUrl)
+                    // Jalur Cadangan: Antara News (Sangat ringan & ramah untuk Android lawas)
+                    const antaraRss = encodeURIComponent('https://www.antaranews.com/rss/terkini.xml');
+                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${antaraRss}`)
                         .then(res => res.json())
-                        .then(proxyData => {
-                            const dataCnn = JSON.parse(proxyData.contents);
-                            if (dataCnn.items && dataCnn.items.length > 0) {
-                                daftarBerita = dataCnn.items.map(item => item.title);
-                                document.getElementById('news-label').innerText = "BERITA TERKINI";
-                                mulaiRotasiBerita();
-                            } else {
-                                throw new Error("Proxy kosong");
+                        .then(dataAntara => {
+                            if (dataAntara.items && dataAntara.items.length > 0) {
+                                daftarBerita = dataAntara.items.map(item => item.title);
+                                const labelEl = document.getElementById('news-label');
+                                if (labelEl) labelEl.innerText = "ANTARA NEWS";
                             }
                         })
-                        .catch(e => {
-                            console.warn("Semua koneksi API luar diblokir. Menggunakan Lapisan 3 (Berita Cadangan Internal).");
-                            // LAPISAN 3: Tetap memutar berita dari array bawaan (tidak pernah blank)
-                            document.getElementById('news-label').innerText = "INFO SMART MIRROR";
-                            mulaiRotasiBerita();
-                        });
+                        .catch(e => console.error("Semua API berita tertahan jaringan tablet:", e));
                 });
         }
 
@@ -697,15 +690,14 @@
             }, 500);
         }
 
-        function mulaiRotasiBerita() {
-            gantiTeksBerita();
-            if (beritaInterval) clearInterval(beritaInterval);
-            beritaInterval = setInterval(gantiTeksBerita, 80000); // Ganti teks setiap 8 detik
-        }
+        // Putar langsung teks bawaan sejak detik pertama (Anti-Loading)
+        gantiTeksBerita();
+        if (beritaInterval) clearInterval(beritaInterval);
+        beritaInterval = setInterval(gantiTeksBerita, 8000); // Rotasi teks tiap 8 detik
 
-        // Panggil saat pertama kali dijalankan
+        // Tarik data berita di latar belakang tanpa mengganggu tampilan
         updateBeritaAPI();
-        setInterval(updateBeritaAPI, 1800000); // Update data dari internet tiap 30 menit
+        setInterval(updateBeritaAPI, 1800000);
     </script>
 </body>
 </html>
