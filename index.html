@@ -456,6 +456,7 @@
         // ----------------------------------------------------
         // 3. Financial Ticker (BTC/USD, USD/IDR, & Emas per Gram/IDR)
         // ----------------------------------------------------
+        const API_KEY_EXCHANGE = '2b44022bc132e3e50f450ad3';
         function updateFinancials() {
             // A. Mengambil Harga Bitcoin (dalam USD) & Harga Emas (dalam IDR) sekaligus
             fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,pax-gold&vs_currencies=usd,idr&include_24hr_change=true')
@@ -493,15 +494,17 @@
                 .catch(err => console.error("Gagal memuat Kripto & Emas:", err));
 
             // B. Mengambil Kurs USD ke IDR (Frankfurter API)
-            fetch('https://api.frankfurter.app/latest?from=USD&to=IDR')
+            fetch(`https://v6.exchangerate-api.com/v6/${API_KEY_EXCHANGE}/latest/USD`)
                 .then(res => res.json())
                 .then(data => {
-                    if(data && data.rates && data.rates.IDR) {
-                        const idr = data.rates.IDR;
-                        document.getElementById('usd-rate').innerText = 'Rp ' + idr.toLocaleString('id-ID');
+                    if(data.conversion_rates && data.conversion_rates.IDR) {
+                        document.getElementById('usd-rate').innerText = 'Rp ' + Math.round(data.conversion_rates.IDR).toLocaleString('id-ID');
                     }
                 })
-                .catch(err => console.error("Gagal memuat USD/IDR:", err));
+                .catch(err => {
+                    console.error("Gagal USD/IDR:", err);
+                    document.getElementById('usd-rate').innerText = "Error";
+                });
         }
         
         updateFinancials(); 
