@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Smart Mirror</title>
+    <title>Smart Mirror Ultimate</title>
     <style>
         body { 
             background: black; 
@@ -304,6 +304,7 @@
                 <div id="calendar-grid"></div>
             </div>
 
+            <!-- Financial Ticker -->
             <div id="fin-container">
                 <div class="fin-row">
                     <span class="fin-label">₿ BTC/USD</span>
@@ -335,7 +336,7 @@
 
     <div id="quote">"Loading motivasi..."</div>
 
-    <!-- Area Kanan Bawah -->
+    <!-- Area Kanan Bawah: Cuaca, Musik & Tanggal -->
     <div id="bottom-right-container">
         <div id="visualizer">
             <div class="bar"></div>
@@ -367,24 +368,26 @@
 
     <!-- Running News Ticker -->
     <div id="news-ticker">
-        <span id="news-label">NYT TOP STORIES</span>
-        <span id="news-content">Loading berita terbaru...</span>
+        <span id="news-label">BERITA TERKINI</span>
+        <span id="news-content">Menghubungkan ke server berita Indonesia...</span>
     </div>
 
     <script>
         // 1. Fungsi Waktu & Fase Bulan
         function updateJam() {
-            const sekarang = new Date();
-            const jam = sekarang.getHours();
-            let salam = (jam >= 5 && jam < 11) ? "Selamat Pagi!" : 
-                        (jam >= 11 && jam < 15) ? "Selamat Siang!" : 
-                        (jam >= 15 && jam < 18) ? "Selamat Sore!" : "Selamat Malam!";
-            
-            document.getElementById('greeting').innerText = salam;
-            document.getElementById('jam').innerText = sekarang.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('tanggal').innerText = sekarang.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
-            
-            updateMoonPhase(sekarang);
+            try {
+                const sekarang = new Date();
+                const jam = sekarang.getHours();
+                let salam = (jam >= 5 && jam < 11) ? "Selamat Pagi!" : 
+                            (jam >= 11 && jam < 15) ? "Selamat Siang!" : 
+                            (jam >= 15 && jam < 18) ? "Selamat Sore!" : "Selamat Malam!";
+                
+                document.getElementById('greeting').innerText = salam;
+                document.getElementById('jam').innerText = sekarang.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                document.getElementById('tanggal').innerText = sekarang.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
+                
+                updateMoonPhase(sekarang);
+            } catch(e) { console.error("Error Jam:", e); }
         }
 
         function updateMoonPhase(date) {
@@ -409,49 +412,51 @@
 
         // 2. Fitur Kalender Bulanan Minimalis
         function renderCalendar() {
-            const sekarang = new Date();
-            const tahun = sekarang.getFullYear();
-            const bulan = sekarang.getMonth();
-            const tanggalHariIni = sekarang.getDate();
+            try {
+                const sekarang = new Date();
+                const tahun = sekarang.getFullYear();
+                const bulan = sekarang.getMonth();
+                const tanggalHariIni = sekarang.getDate();
 
-            const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+                const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
-            document.getElementById('calendar-header').innerText = `${namaBulan[bulan]} ${tahun}`;
+                document.getElementById('calendar-header').innerText = `${namaBulan[bulan]} ${tahun}`;
 
-            const grid = document.getElementById('calendar-grid');
-            grid.innerHTML = '';
+                const grid = document.getElementById('calendar-grid');
+                grid.innerHTML = '';
 
-            namaHari.forEach(hari => {
-                const el = document.createElement('div');
-                el.className = 'cal-day-name';
-                el.innerText = hari;
-                grid.appendChild(el);
-            });
+                namaHari.forEach(hari => {
+                    const el = document.createElement('div');
+                    el.className = 'cal-day-name';
+                    el.innerText = hari;
+                    grid.appendChild(el);
+                });
 
-            const hariPertama = new Date(tahun, bulan, 1).getDay();
-            const jumlahHari = new Date(tahun, bulan + 1, 0).getDate();
+                const hariPertama = new Date(tahun, bulan, 1).getDay();
+                const jumlahHari = new Date(tahun, bulan + 1, 0).getDate();
 
-            for (let i = 0; i < hariPertama; i++) {
-                const el = document.createElement('div');
-                el.className = 'cal-date empty';
-                grid.appendChild(el);
-            }
-
-            for (let i = 1; i <= jumlahHari; i++) {
-                const el = document.createElement('div');
-                el.className = 'cal-date';
-                if (i === tanggalHariIni) {
-                    el.classList.add('today'); 
+                for (let i = 0; i < hariPertama; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'cal-date empty';
+                    grid.appendChild(el);
                 }
-                el.innerText = i;
-                grid.appendChild(el);
-            }
+
+                for (let i = 1; i <= jumlahHari; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'cal-date';
+                    if (i === tanggalHariIni) {
+                        el.classList.add('today'); 
+                    }
+                    el.innerText = i;
+                    grid.appendChild(el);
+                }
+            } catch(e) { console.error("Error Kalender:", e); }
         }
         renderCalendar();
         setInterval(renderCalendar, 3600000); 
 
-        // 3. Financial Ticker (BTC/USD, USD/IDR, & Emas per Gram/IDR)
+        // 3. Financial Ticker
         function updateFinancials() {
             fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,pax-gold&vs_currencies=usd,idr&include_24hr_change=true')
                 .then(res => res.json())
@@ -459,42 +464,35 @@
                     if(data && data['bitcoin']) {
                         const btcUsd = data['bitcoin'].usd;
                         const btcChange = data['bitcoin'].usd_24h_change;
-
                         document.getElementById('btc-rate').innerText = '$' + btcUsd.toLocaleString('en-US');
-                        
                         const changeEl = document.getElementById('btc-change');
                         const isPositive = btcChange >= 0;
                         changeEl.innerText = (isPositive ? '+' : '') + btcChange.toFixed(2) + '%';
                         changeEl.className = 'fin-change ' + (isPositive ? 'up' : 'down');
                     }
-
                     if(data && data['pax-gold']) {
                         const emasPerTroyOunce = data['pax-gold'].idr;
                         const goldChange = data['pax-gold'].idr_24h_change;
                         const emasPerGram = emasPerTroyOunce / 31.1035;
-
                         document.getElementById('gold-rate').innerText = 'Rp ' + Math.round(emasPerGram).toLocaleString('id-ID');
-
                         const changeEl = document.getElementById('gold-change');
                         const isPositive = goldChange >= 0;
                         changeEl.innerText = (isPositive ? '+' : '') + goldChange.toFixed(2) + '%';
                         changeEl.className = 'fin-change ' + (isPositive ? 'up' : 'down');
                     }
                 })
-                .catch(err => console.error("Gagal memuat Kripto & Emas:", err));
+                .catch(err => console.warn("Kripto diabaikan:", err));
 
             fetch('https://api.frankfurter.app/latest?from=USD&to=IDR')
                 .then(res => res.json())
                 .then(data => {
                     if(data && data.rates && data.rates.IDR) {
-                        const idr = data.rates.IDR;
-                        document.getElementById('usd-rate').innerText = 'Rp ' + idr.toLocaleString('id-ID');
+                        document.getElementById('usd-rate').innerText = 'Rp ' + data.rates.IDR.toLocaleString('id-ID');
                     }
                 })
-                .catch(err => console.error("Gagal memuat USD/IDR:", err));
+                .catch(err => console.warn("USD/IDR diabaikan:", err));
         }
-        
-        updateFinancials(); 
+        setTimeout(updateFinancials, 2000);
         setInterval(updateFinancials, 300000); 
 
         // 4. Fungsi Cuaca & AQI
@@ -508,11 +506,10 @@
                         document.getElementById('temp').innerText = Math.round(data.main.temp) + '°C';
                         document.getElementById('desc').innerText = data.weather[0].description;
                         document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-                        
                         updateAQI(data.coord.lat, data.coord.lon);
                     }
                 })
-                .catch(err => console.error("Gagal mengambil data cuaca:", err));
+                .catch(err => console.warn("Cuaca diabaikan:", err));
         }
 
         function updateAQI(lat, lon) {
@@ -522,30 +519,15 @@
                     if(data.current && data.current.us_aqi !== undefined) {
                         const aqi = data.current.us_aqi;
                         const badge = document.getElementById('aqi-badge');
-                        
-                        if(aqi <= 50) {
-                            badge.innerText = `AQI: ${aqi} (Baik)`;
-                            badge.style.background = '#4CAF50'; 
-                            badge.style.color = 'black';
-                        } else if(aqi <= 100) {
-                            badge.innerText = `AQI: ${aqi} (Sedang)`;
-                            badge.style.background = '#FFEB3B'; 
-                            badge.style.color = 'black';
-                        } else if(aqi <= 150) {
-                            badge.innerText = `AQI: ${aqi} (Sensitif)`;
-                            badge.style.background = '#FF9800'; 
-                            badge.style.color = 'black';
-                        } else {
-                            badge.innerText = `AQI: ${aqi} (Buruk)`;
-                            badge.style.background = '#F44336'; 
-                            badge.style.color = 'white';
-                        }
+                        if(aqi <= 50) { badge.innerText = `AQI: ${aqi} (Baik)`; badge.style.background = '#4CAF50'; badge.style.color = 'black'; }
+                        else if(aqi <= 100) { badge.innerText = `AQI: ${aqi} (Sedang)`; badge.style.background = '#FFEB3B'; badge.style.color = 'black'; }
+                        else if(aqi <= 150) { badge.innerText = `AQI: ${aqi} (Sensitif)`; badge.style.background = '#FF9800'; badge.style.color = 'black'; }
+                        else { badge.innerText = `AQI: ${aqi} (Buruk)`; badge.style.background = '#F44336'; badge.style.color = 'white'; }
                     }
                 })
-                .catch(err => console.error("Gagal memuat AQI:", err));
+                .catch(err => console.warn("AQI diabaikan:", err));
         }
-
-        updateCuaca();
+        setTimeout(updateCuaca, 3000);
         setInterval(updateCuaca, 1800000);
 
         // 5. Fungsi Kutipan
@@ -556,7 +538,7 @@
         ];
         document.getElementById('quote').innerText = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
 
-        // 6. Fitur Jadwal Sholat & Hitung Mundur (Aladhan API)
+        // 6. Fitur Jadwal Sholat & Hitung Mundur
         let jadwalSholatHariIni = {};
         function updateJadwalSholat() {
             fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=Indonesia&method=11`)
@@ -565,139 +547,124 @@
                     if(data.data && data.data.timings) {
                         const t = data.data.timings;
                         jadwalSholatHariIni = {
-                            "Subuh": t.Fajr,
-                            "Dhuha": t.Sunrise,
-                            "Dzuhur": t.Dhuhr,
-                            "Ashar": t.Asr,
-                            "Maghrib": t.Maghrib,
-                            "Isya": t.Isha
+                            "Subuh": t.Fajr, "Dhuha": t.Sunrise, "Dzuhur": t.Dhuhr,
+                            "Ashar": t.Asr, "Maghrib": t.Maghrib, "Isya": t.Isha
                         };
                         renderJadwalSholat();
                     }
                 })
-                .catch(err => console.error("Gagal memuat jadwal sholat:", err));
+                .catch(err => console.warn("Sholat diabaikan:", err));
         }
 
         function renderJadwalSholat() {
-            const listEl = document.getElementById('prayer-list');
-            listEl.innerHTML = '';
-            
-            const sekarang = new Date();
-            const waktuSekarangMenit = sekarang.getHours() * 60 + sekarang.getMinutes();
-            let nextPrayerName = "-";
-            let selisihMenitTerkecil = Infinity;
+            try {
+                const listEl = document.getElementById('prayer-list');
+                listEl.innerHTML = '';
+                const sekarang = new Date();
+                const waktuSekarangMenit = sekarang.getHours() * 60 + sekarang.getMinutes();
+                let nextPrayerName = "-";
+                let selisihMenitTerkecil = Infinity;
 
-            for (let [nama, waktu] of Object.entries(jadwalSholatHariIni)) {
-                const [jam, menit] = waktu.split(':').map(Number);
-                const waktuSholatMenit = jam * 60 + menit;
-                
-                if (waktuSholatMenit > waktuSekarangMenit && (waktuSholatMenit - waktuSekarangMenit) < selisihMenitTerkecil) {
-                    selisihMenitTerkecil = waktuSholatMenit - waktuSekarangMenit;
-                    nextPrayerName = nama;
+                for (let [nama, waktu] of Object.entries(jadwalSholatHariIni)) {
+                    const [jam, menit] = waktu.split(':').map(Number);
+                    const waktuSholatMenit = jam * 60 + menit;
+                    if (waktuSholatMenit > waktuSekarangMenit && (waktuSholatMenit - waktuSekarangMenit) < selisihMenitTerkecil) {
+                        selisihMenitTerkecil = waktuSholatMenit - waktuSekarangMenit;
+                        nextPrayerName = nama;
+                    }
+                    const row = document.createElement('div');
+                    row.className = 'prayer-row';
+                    row.innerHTML = `<span>${nama}</span><span>${waktu}</span>`;
+                    listEl.appendChild(row);
                 }
 
-                const row = document.createElement('div');
-                row.className = 'prayer-row';
-                row.innerHTML = `<span>${nama}</span><span>${waktu}</span>`;
-                listEl.appendChild(row);
-            }
-
-            const rows = listEl.getElementsByClassName('prayer-row');
-            for(let row of rows) {
-                if(row.innerText.includes(nextPrayerName)) {
-                    row.classList.add('next-prayer');
+                const rows = listEl.getElementsByClassName('prayer-row');
+                for(let row of rows) {
+                    if(row.innerText.includes(nextPrayerName)) {
+                        row.classList.add('next-prayer');
+                    }
                 }
-            }
 
-            if (nextPrayerName !== "-") {
-                const jamSisa = Math.floor(selisihMenitTerkecil / 60);
-                const menitSisa = selisihMenitTerkecil % 60;
-                let teksCountdown = `Menuju ${nextPrayerName}: `;
-                if(jamSisa > 0) teksCountdown += `${jamSisa} jam `;
-                teksCountdown += `${menitSisa} menit lagi`;
-                document.getElementById('prayer-countdown').innerText = teksCountdown;
-            } else {
-                document.getElementById('prayer-countdown').innerText = "Waktu Isya telah lewat";
-            }
+                if (nextPrayerName !== "-") {
+                    const jamSisa = Math.floor(selisihMenitTerkecil / 60);
+                    const menitSisa = selisihMenitTerkecil % 60;
+                    let teksCountdown = `Menuju ${nextPrayerName}: `;
+                    if(jamSisa > 0) teksCountdown += `${jamSisa} jam `;
+                    teksCountdown += `${menitSisa} menit lagi`;
+                    document.getElementById('prayer-countdown').innerText = teksCountdown;
+                } else if (Object.keys(jadwalSholatHariIni).length > 0) {
+                    document.getElementById('prayer-countdown').innerText = "Waktu Isya telah lewat";
+                }
+            } catch(e) { console.error("Error Render Sholat:", e); }
         }
-
-        updateJadwalSholat();
+        setTimeout(updateJadwalSholat, 1000);
         setInterval(updateJadwalSholat, 3600000); 
         setInterval(renderJadwalSholat, 60000); 
 
         // ----------------------------------------------------
-        // 7. Fitur Berita Terkini (DIperbaiki Agar Muncul di Tab)
-        // ----------------------------------------------------
-        // ----------------------------------------------------
-        // 7. Fitur Berita Terkini (Anti-Blokir Chrome & CORS)
-        // ----------------------------------------------------
-       
-        // ----------------------------------------------------
-        // 7. Fitur Berita Terkini (Khusus Optimasi Tablet Android 5.1)
+        // 7. Fitur Berita Terkini (Direct API Tanpa Proxy!)
         // ----------------------------------------------------
         let daftarBerita = [
-            "Selamat datang di Smart Mirror! Sistem berfungsi normal.",
-            "Tips: Tetap semangat dan jaga kesehatan setiap hari!",
-            "Info: Mengambil pembaruan berita terkini dari server..."
+            "Selamat datang di Smart Mirror! Memuat berita terbaru...",
+            "Tips: Tetap semangat dan jaga kesehatan setiap hari!"
         ];
         let indeksBerita = 0;
         let beritaInterval = null;
 
         function updateBeritaAPI() {
-            // Menggunakan sumber berita yang sangat ringan tanpa Double Proxy
-            // Jalur Utama: CNN Indonesia via RSS2JSON langsung
-            const rssUrl = encodeURIComponent('https://www.cnnindonesia.com/nasional/rss');
-            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
-
-            fetch(apiUrl)
+            // Menggunakan Direct Public JSON API Berita Indonesia (Tanpa RSS2JSON, Tanpa Proxy)
+            // Di-host di Vercel/Cloudflare: Sangat cepat, stabil, dan ramah untuk Mobile/Tablet!
+            fetch('https://api-berita-indonesia.vercel.app/cnn/terbaru/')
                 .then(response => {
-                    if (!response.ok) throw new Error("Koneksi API tidak merespons");
+                    if (!response.ok) throw new Error("Gagal mengambil berita CNN");
                     return response.json();
                 })
                 .then(data => {
-                    if (data.items && data.items.length > 0) {
-                        daftarBerita = data.items.map(item => item.title);
+                    const artikel = data.data && data.data.posts ? data.data.posts : null;
+                    if (artikel && artikel.length > 0) {
+                        daftarBerita = artikel.map(item => item.title);
                         const labelEl = document.getElementById('news-label');
-                        if (labelEl) labelEl.innerText = "BERITA TERKINI";
+                        if (labelEl) labelEl.innerText = "CNN INDONESIA";
                     }
                 })
                 .catch(err => {
-                    console.warn("Gagal load CNN, mencoba sumber cadangan (Antara News)...", err);
-                    
-                    // Jalur Cadangan: Antara News (Sangat ringan & ramah untuk Android lawas)
-                    const antaraRss = encodeURIComponent('https://www.antaranews.com/rss/terkini.xml');
-                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${antaraRss}`)
+                    console.warn("CNN gagal, mencoba sumber cadangan (Antara News)...", err);
+                    // Jalur Cadangan: Antara News (via API murni yang sama)
+                    fetch('https://api-berita-indonesia.vercel.app/antara/terbaru/')
                         .then(res => res.json())
                         .then(dataAntara => {
-                            if (dataAntara.items && dataAntara.items.length > 0) {
-                                daftarBerita = dataAntara.items.map(item => item.title);
+                            const artikelAntara = dataAntara.data && dataAntara.data.posts ? dataAntara.data.posts : null;
+                            if (artikelAntara && artikelAntara.length > 0) {
+                                daftarBerita = artikelAntara.map(item => item.title);
                                 const labelEl = document.getElementById('news-label');
                                 if (labelEl) labelEl.innerText = "ANTARA NEWS";
                             }
                         })
-                        .catch(e => console.error("Semua API berita tertahan jaringan tablet:", e));
+                        .catch(e => console.error("Gagal memuat berita online:", e));
                 });
         }
 
         function gantiTeksBerita() {
-            const el = document.getElementById('news-content');
-            if (!el) return;
-            el.style.opacity = 0;
-            setTimeout(() => {
-                el.innerText = daftarBerita[indeksBerita];
-                el.style.opacity = 1;
-                indeksBerita = (indeksBerita + 1) % daftarBerita.length;
-            }, 500);
+            try {
+                const el = document.getElementById('news-content');
+                if (!el) return;
+                el.style.opacity = 0;
+                setTimeout(() => {
+                    el.innerText = daftarBerita[indeksBerita];
+                    el.style.opacity = 1;
+                    indeksBerita = (indeksBerita + 1) % daftarBerita.length;
+                }, 500);
+            } catch(e) { console.error("Error Berita:", e); }
         }
 
-        // Putar langsung teks bawaan sejak detik pertama (Anti-Loading)
+        // Putar teks langsung detik itu juga
         gantiTeksBerita();
         if (beritaInterval) clearInterval(beritaInterval);
-        beritaInterval = setInterval(gantiTeksBerita, 8000); // Rotasi teks tiap 8 detik
+        beritaInterval = setInterval(gantiTeksBerita, 8000); // Ganti tiap 8 detik
 
-        // Tarik data berita di latar belakang tanpa mengganggu tampilan
+        // Ambil data di latar belakang
         updateBeritaAPI();
-        setInterval(updateBeritaAPI, 1800000);
+        setInterval(updateBeritaAPI, 1800000); // Perbarui dari internet tiap 30 menit
     </script>
 </body>
 </html>
