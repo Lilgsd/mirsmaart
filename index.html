@@ -116,15 +116,13 @@
             visibility: hidden;
         }
 
-        /* ---------------------------------------------------- */
-        /* Fitur Baru: Financial Ticker (Kiri Bawah)           */
-        /* ---------------------------------------------------- */
+        /* Financial Ticker (Kiri Bawah) */
         #fin-container {
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
             padding: 12px 15px;
             border-radius: 12px;
-            border-left: 3px solid #FFD700; /* Warna Emas / Bitcoin */
+            border-left: 3px solid #FFD700;
             box-sizing: border-box;
             font-size: 14px;
             display: flex;
@@ -287,6 +285,7 @@
             white-space: nowrap;
             text-overflow: ellipsis;
             width: 100%;
+            transition: opacity 0.5s ease-in-out;
         }
     </style>
 </head>
@@ -305,7 +304,6 @@
                 <div id="calendar-grid"></div>
             </div>
 
-            <!-- Fitur Baru: Financial Ticker (BTC/USD, USD/IDR, & Emas per Gram/IDR) -->
             <div id="fin-container">
                 <div class="fin-row">
                     <span class="fin-label">₿ BTC/USD</span>
@@ -453,15 +451,11 @@
         renderCalendar();
         setInterval(renderCalendar, 3600000); 
 
-        // ----------------------------------------------------
         // 3. Financial Ticker (BTC/USD, USD/IDR, & Emas per Gram/IDR)
-        // ----------------------------------------------------
         function updateFinancials() {
-            // A. Mengambil Harga Bitcoin (dalam USD) & Harga Emas (dalam IDR) sekaligus
             fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,pax-gold&vs_currencies=usd,idr&include_24hr_change=true')
                 .then(res => res.json())
                 .then(data => {
-                    // Update Bitcoin ke USD
                     if(data && data['bitcoin']) {
                         const btcUsd = data['bitcoin'].usd;
                         const btcChange = data['bitcoin'].usd_24h_change;
@@ -474,12 +468,9 @@
                         changeEl.className = 'fin-change ' + (isPositive ? 'up' : 'down');
                     }
 
-                    // Update Emas ke IDR (Dikonversi ke 1 Gram)
                     if(data && data['pax-gold']) {
                         const emasPerTroyOunce = data['pax-gold'].idr;
                         const goldChange = data['pax-gold'].idr_24h_change;
-
-                        // Trik Konversi: 1 Troy Ounce = 31.1035 Gram
                         const emasPerGram = emasPerTroyOunce / 31.1035;
 
                         document.getElementById('gold-rate').innerText = 'Rp ' + Math.round(emasPerGram).toLocaleString('id-ID');
@@ -492,7 +483,6 @@
                 })
                 .catch(err => console.error("Gagal memuat Kripto & Emas:", err));
 
-            // B. Mengambil Kurs USD ke IDR (Frankfurter API)
             fetch('https://api.frankfurter.app/latest?from=USD&to=IDR')
                 .then(res => res.json())
                 .then(data => {
@@ -635,40 +625,71 @@
         setInterval(updateJadwalSholat, 3600000); 
         setInterval(renderJadwalSholat, 60000); 
 
-        // 7. Fitur Berita Terkini (NYT Top Stories)
+        // ----------------------------------------------------
+        // 7. Fitur Berita Terkini (DIperbaiki Agar Muncul di Tab)
+        // ----------------------------------------------------
         let daftarBerita = [
             "Selamat datang di Smart Mirror. Harap tunggu, sedang memuat berita terbaru hari ini...",
             "Tips: Tetap semangat dan jaga kesehatan setiap hari!"
         ];
         let indeksBerita = 0;
+        let beritaInterval = null;
 
         function updateBeritaAPI() {
-            const rssUrl = encodeURIComponent('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml');
-            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`)
+            // Kita coba ambil dari NYT terlebih dahulu
+            const nytUrl = encodeURIComponent('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml');
+            
+            // Menggunakan parameter t (timestamp) agar tablet tidak macet di cache memori lama
+            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${nytUrl}&t=${new Date().getTime()}`)
                 .then(response => response.json())
                 .then(data => {
                     if(data.items && data.items.length > 0) {
                         daftarBerita = data.items.map(item => item.title);
+                        document.getElementById('news-label').innerText = "NYT TOP STORIES";
+                        mulaiRotasiBerita();
+                    } else {
+                        throw new Error("Data NYT kosong, mengalihkan ke fallback...");
                     }
                 })
-                .catch(err => console.error("Gagal memuat berita:", err));
+                .catch(err => {
+                    console.warn(err.message + " Mengambil berita dari CNN Indonesia.");
+                    // JALUR CADANGAN: Jika NYT gagal/lambat di Android 5.1, otomatis beralih ke CNN
+                    const cnnUrl = encodeURIComponent('https://www.cnnindonesia.com/nasional/rss');
+                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${cnnUrl}&t=${new Date().getTime()}`)
+                        .then(res => res.json())
+                        .then(dataCnn => {
+                            if(dataCnn.items && dataCnn.items.length > 0) {
+                                daftarBerita = dataCnn.items.map(item => item.title);
+                                document.getElementById('news-label').innerText = "BERITA TERKINI";
+                                mulaiRotasiBerita();
+                            }
+                        })
+                        .catch(e => console.error("Semua sumber berita gagal dimuat:", e));
+                });
         }
 
-        function rotasiBerita() {
+        function gantiTeksBerita() {
             const el = document.getElementById('news-content');
             el.style.opacity = 0;
             setTimeout(() => {
                 el.innerText = daftarBerita[indeksBerita];
                 el.style.opacity = 1;
-                el.style.transition = "opacity 0.5s ease-in-out";
                 indeksBerita = (indeksBerita + 1) % daftarBerita.length;
             }, 500);
         }
 
+        function mulaiRotasiBerita() {
+            // Tampilkan berita pertama langsung
+            gantiTeksBerita();
+            
+            // Hapus interval lama jika ada, lalu buat interval baru tiap 8 detik
+            if (beritaInterval) clearInterval(beritaInterval);
+            beritaInterval = setInterval(gantiTeksBerita, 80000);
+        }
+
+        // Panggil fungsi saat pertama kali dijalankan
         updateBeritaAPI();
-        rotasiBerita();
-        setInterval(updateBeritaAPI, 1800000); 
-        setInterval(rotasiBerita, 80000); 
+        setInterval(updateBeritaAPI, 1800000); // Perbarui data berita tiap 30 menit
     </script>
 </body>
 </html>
