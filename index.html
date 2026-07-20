@@ -628,48 +628,67 @@
         // ----------------------------------------------------
         // 7. Fitur Berita Terkini (DIperbaiki Agar Muncul di Tab)
         // ----------------------------------------------------
+        // ----------------------------------------------------
+        // 7. Fitur Berita Terkini (Anti-Blokir Chrome & CORS)
+        // ----------------------------------------------------
         let daftarBerita = [
-            "Selamat datang di Smart Mirror. Harap tunggu, sedang memuat berita terbaru hari ini...",
-            "Tips: Tetap semangat dan jaga kesehatan setiap hari!"
+            "Selamat datang di Smart Mirror. Harap tunggu, sedang memutakhirkan berita...",
+            "Tips Smart Home: Cuaca hari ini dapat berubah, selalu siapkan payung sebelum beraktivitas.",
+            "Info Pasar: Pantau terus pergerakan nilai tukar Dolar dan harga emas per gram di panel kiri.",
+            "Teknologi: Smart Mirror berbasis Android 5.1 ini berjalan hemat daya dan ramah kuota internet."
         ];
         let indeksBerita = 0;
         let beritaInterval = null;
 
         function updateBeritaAPI() {
-            // Kita coba ambil dari NYT terlebih dahulu
+            // LAPISAN 1: Mencoba NYT via RSS2JSON biasa
             const nytUrl = encodeURIComponent('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml');
-            
-            // Menggunakan parameter t (timestamp) agar tablet tidak macet di cache memori lama
-            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${nytUrl}&t=${new Date().getTime()}`)
-                .then(response => response.json())
+            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${nytUrl}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Gagal load NYT");
+                    return response.json();
+                })
                 .then(data => {
-                    if(data.items && data.items.length > 0) {
+                    if (data.items && data.items.length > 0) {
                         daftarBerita = data.items.map(item => item.title);
                         document.getElementById('news-label').innerText = "NYT TOP STORIES";
                         mulaiRotasiBerita();
                     } else {
-                        throw new Error("Data NYT kosong, mengalihkan ke fallback...");
+                        throw new Error("Data NYT kosong");
                     }
                 })
                 .catch(err => {
-                    console.warn(err.message + " Mengambil berita dari CNN Indonesia.");
-                    // JALUR CADANGAN: Jika NYT gagal/lambat di Android 5.1, otomatis beralih ke CNN
-                    const cnnUrl = encodeURIComponent('https://www.cnnindonesia.com/nasional/rss');
-                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${cnnUrl}&t=${new Date().getTime()}`)
+                    console.warn("Lapisan 1 (NYT) diblokir Chrome/CORS. Mengalihkan ke Lapisan 2 (CORS Proxy)...");
+                    
+                    // LAPISAN 2: Menggunakan AllOrigins Proxy (Bypass Blokir CORS di Chrome Laptop)
+                    // Mengambil RSS Feed Nasional dari CNN Indonesia via proxy terbuka
+                    const cnnRss = encodeURIComponent('https://www.cnnindonesia.com/nasional/rss');
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://api.rss2json.com/v1/api.json?rss_url=' + cnnRss)}`;
+                    
+                    fetch(proxyUrl)
                         .then(res => res.json())
-                        .then(dataCnn => {
-                            if(dataCnn.items && dataCnn.items.length > 0) {
+                        .then(proxyData => {
+                            const dataCnn = JSON.parse(proxyData.contents);
+                            if (dataCnn.items && dataCnn.items.length > 0) {
                                 daftarBerita = dataCnn.items.map(item => item.title);
                                 document.getElementById('news-label').innerText = "BERITA TERKINI";
                                 mulaiRotasiBerita();
+                            } else {
+                                throw new Error("Proxy kosong");
                             }
                         })
-                        .catch(e => console.error("Semua sumber berita gagal dimuat:", e));
+                        .catch(e => {
+                            console.warn("Semua koneksi API luar diblokir. Menggunakan Lapisan 3 (Berita Cadangan Internal).");
+                            // LAPISAN 3: Tetap memutar berita dari array bawaan (tidak pernah blank)
+                            document.getElementById('news-label').innerText = "INFO SMART MIRROR";
+                            mulaiRotasiBerita();
+                        });
                 });
         }
 
         function gantiTeksBerita() {
             const el = document.getElementById('news-content');
+            if (!el) return;
             el.style.opacity = 0;
             setTimeout(() => {
                 el.innerText = daftarBerita[indeksBerita];
@@ -679,17 +698,14 @@
         }
 
         function mulaiRotasiBerita() {
-            // Tampilkan berita pertama langsung
             gantiTeksBerita();
-            
-            // Hapus interval lama jika ada, lalu buat interval baru tiap 8 detik
             if (beritaInterval) clearInterval(beritaInterval);
-            beritaInterval = setInterval(gantiTeksBerita, 80000);
+            beritaInterval = setInterval(gantiTeksBerita, 80000); // Ganti teks setiap 8 detik
         }
 
-        // Panggil fungsi saat pertama kali dijalankan
+        // Panggil saat pertama kali dijalankan
         updateBeritaAPI();
-        setInterval(updateBeritaAPI, 1800000); // Perbarui data berita tiap 30 menit
+        setInterval(updateBeritaAPI, 1800000); // Update data dari internet tiap 30 menit
     </script>
 </body>
 </html>
