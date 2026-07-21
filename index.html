@@ -175,26 +175,31 @@
             padding: 0 15%;
         }
 
-        /* Bagian Bawah Kanan (Musik, Cuaca, AQI, Tanggal & Bulan) */
-        #bottom-right-container { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: flex-end; 
-            text-align: right; 
-            margin-bottom: 15px;
+        /* ---------------------------------------------------- */
+        /* Container Musik & Visualizer (Kiri Bawah atas Berita) */
+        /* ---------------------------------------------------- */
+        #music-container { 
             position: absolute;
-            right: 30px;
-            bottom: 50px;
+            left: 30px;
+            bottom: 100px; /* Tepat di atas garis news ticker */
+            width: 280px; /* Sejajar rapi dengan lebar kolom kiri */
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
-        
+        #music-container iframe {
+            filter: grayscale(100%) brightness(1.2) opacity(0.6);
+            mix-blend-mode: screen; 
+        }
         /* Cyber Audio Visualizer */
         #visualizer {
             display: flex;
             gap: 4px;
             align-items: flex-end;
             height: 20px;
-            margin-bottom: 6px;
-            margin-right: 10px;
+            margin-bottom: 8px;
+            margin-left: 4px;
         }
         .bar {
             width: 4px;
@@ -213,14 +218,16 @@
             100% { transform: scaleY(1.2); opacity: 1; }
         }
 
-        /* Container Musik */
-        #music-container iframe {
-            filter: grayscale(100%) brightness(1.2) opacity(0.6);
-            mix-blend-mode: screen; 
-        }
-        #music-container { 
-            margin-bottom: 15px; 
-            width: 300px; 
+        /* Bagian Bawah Kanan (Cuaca, AQI, Tanggal & Bulan) */
+        #bottom-right-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+            text-align: right; 
+            margin-bottom: 15px;
+            position: absolute;
+            right: 30px;
+            bottom: 100px;
         }
 
         /* Container Cuaca */
@@ -327,8 +334,8 @@
 
     <div id="quote">"Loading motivasi..."</div>
 
-    <!-- Area Kanan Bawah -->
-    <div id="bottom-right-container">
+    <!-- Area Kiri Bawah: Musik & Audio Visualizer -->
+    <div id="music-container">
         <div id="visualizer">
             <div class="bar"></div>
             <div class="bar"></div>
@@ -336,11 +343,11 @@
             <div class="bar"></div>
             <div class="bar"></div>
         </div>
+        <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/playlist/37i9dQZF1DWWQRwui0ExPn?utm_source=generator" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    </div>
 
-        <div id="music-container">
-            <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/playlist/0GXqOyHOle8IxKvZvjIfi2?utm_source=generator&si=3c63d89eee17480f" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        </div>
-
+    <!-- Area Kanan Bawah: Cuaca, AQI, Tanggal & Bulan -->
+    <div id="bottom-right-container">
         <div id="weather">
             <div id="weather-info">
                 <span id="temp">--°C</span>
