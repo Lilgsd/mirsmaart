@@ -39,10 +39,8 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            border-left: 3px solid #00E676;
+            background: transparent;
+            padding: 10px 0;
             box-sizing: border-box;
         }
         #prayer-countdown {
@@ -50,7 +48,7 @@
             font-weight: bold;
             color: #00E676;
             margin-bottom: 10px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 8px;
         }
         .prayer-row {
@@ -70,9 +68,7 @@
         #calendar-container {
             width: 100%;
             background: transparent; 
-            padding: 10px 15px;
-            border-radius: 12px;
-            border-left: 3px solid rgba(255, 255, 255, 0.8);
+            padding: 10px 0;
             box-sizing: border-box;
         }
         #calendar-header {
@@ -116,15 +112,11 @@
             visibility: hidden;
         }
 
-        /* ---------------------------------------------------- */
-        /* Fitur Baru: Financial Ticker (Kiri Bawah)           */
-        /* ---------------------------------------------------- */
+        /* Financial Ticker (Kiri Bawah) */
         #fin-container {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px 15px;
-            border-radius: 12px;
-            border-left: 3px solid #FFD700; /* Warna Emas / Bitcoin */
+            background: transparent;
+            padding: 10px 0;
             box-sizing: border-box;
             font-size: 14px;
             display: flex;
@@ -266,15 +258,14 @@
         /* Bagian Paling Bawah (News Ticker / Berita) */
         #news-ticker {
             width: 100%;
-            background: rgba(255, 255, 255, 0.08);
-            padding: 10px 15px;
-            border-radius: 8px;
+            background: transparent;
+            padding: 10px 0;
             font-size: 16px;
             color: #ddd;
             display: flex;
             align-items: center;
             box-sizing: border-box;
-            border-left: 3px solid #2196F3;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         #news-label {
             font-weight: bold;
@@ -305,7 +296,6 @@
                 <div id="calendar-grid"></div>
             </div>
 
-            <!-- Fitur Baru: Financial Ticker (BTC/USD, USD/IDR, & Emas per Gram/IDR) -->
             <div id="fin-container">
                 <div class="fin-row">
                     <span class="fin-label">₿ BTC/USD</span>
@@ -453,16 +443,12 @@
         renderCalendar();
         setInterval(renderCalendar, 3600000); 
 
-        // ----------------------------------------------------
         // 3. Financial Ticker (BTC/USD, USD/IDR, & Emas per Gram/IDR)
-        // ----------------------------------------------------
         const API_KEY_EXCHANGE = '2b44022bc132e3e50f450ad3';
         function updateFinancials() {
-            // A. Mengambil Harga Bitcoin (dalam USD) & Harga Emas (dalam IDR) sekaligus
             fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,pax-gold&vs_currencies=usd,idr&include_24hr_change=true')
                 .then(res => res.json())
                 .then(data => {
-                    // Update Bitcoin ke USD
                     if(data && data['bitcoin']) {
                         const btcUsd = data['bitcoin'].usd;
                         const btcChange = data['bitcoin'].usd_24h_change;
@@ -475,12 +461,10 @@
                         changeEl.className = 'fin-change ' + (isPositive ? 'up' : 'down');
                     }
 
-                    // Update Emas ke IDR (Dikonversi ke 1 Gram)
                     if(data && data['pax-gold']) {
                         const emasPerTroyOunce = data['pax-gold'].idr;
                         const goldChange = data['pax-gold'].idr_24h_change;
 
-                        // Trik Konversi: 1 Troy Ounce = 31.1035 Gram
                         const emasPerGram = emasPerTroyOunce / 31.1035;
 
                         document.getElementById('gold-rate').innerText = 'Rp ' + Math.round(emasPerGram).toLocaleString('id-ID');
@@ -493,7 +477,6 @@
                 })
                 .catch(err => console.error("Gagal memuat Kripto & Emas:", err));
 
-            // B. Mengambil Kurs USD ke IDR (Frankfurter API)
             fetch(`https://v6.exchangerate-api.com/v6/${API_KEY_EXCHANGE}/latest/USD`)
                 .then(res => res.json())
                 .then(data => {
@@ -569,7 +552,7 @@
         ];
         document.getElementById('quote').innerText = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
 
-        // 6. Fitur Jadwal Sholat & Hitung Mundur (Aladhan API)
+        // 6. Fitur Jadwal Sholat & Hitung Mundur
         let jadwalSholatHariIni = {};
         function updateJadwalSholat() {
             fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=Indonesia&method=11`)
@@ -638,7 +621,7 @@
         setInterval(updateJadwalSholat, 3600000); 
         setInterval(renderJadwalSholat, 60000); 
 
-        // 7. Fitur Berita Terkini (NYT Top Stories)
+        // 7. Fitur Berita Terkini
         let daftarBerita = [
             "Selamat datang di Smart Mirror. Harap tunggu, sedang memuat berita terbaru hari ini...",
             "Tips: Tetap semangat dan jaga kesehatan setiap hari!"
